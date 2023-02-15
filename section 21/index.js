@@ -69,7 +69,7 @@ const movieTemplate = (movieDetail) => {
                 <img src="${movieDetail.Poster}" />
             </p>
         </figure>
-        <div class="medica-content">
+        <div class="media-content">
             <div class="content">
                 <h1>${movieDetail.Title}</h1>
                 <h4>${movieDetail.Genre}</h4>
@@ -77,5 +77,19 @@ const movieTemplate = (movieDetail) => {
             </div>
         </div>
     </article>
+    ${movieNotification(movieDetail.Awards, 'Awards')}
+    ${movieNotification(movieDetail.BoxOffice, 'Box Office')}
+    ${movieNotification(movieDetail.Metascore, 'Metascore')}
+    ${movieNotification(movieDetail.imdbRating, 'IMDB Rating')}
+    ${movieNotification(movieDetail.imdbVotes, 'IMDB votes')}
     `;
 };
+
+const movieNotification = (title, subtitle) => {
+    return `
+    <article class="notification is-primary">
+        <p class="title">${title}</p>
+        <p class="subtitle">${subtitle}</p>
+    </article>
+    `;
+}
