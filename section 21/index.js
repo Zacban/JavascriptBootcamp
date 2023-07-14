@@ -18,16 +18,16 @@ createAutoComplete({
     },
     async fetchData(searchTerm) {
         const response = await axios.get('https://www.omdbapi.com/', {
-        params: {
-            apikey: '996f8dcc',
-            s: searchTerm
-        }
-    });
+            params: {
+                apikey: '996f8dcc',
+                s: searchTerm
+            }
+        });
 
-    if (response.data.Error)
-        return [];
+        if (response.data.Error)
+            return [];
 
-    return response.data.Search;
+        return response.data.Search;
     }
 });
 
