@@ -33,7 +33,7 @@ createAutoComplete({
     onOptionSelect(movie) {
         document.querySelector('.tutorial').classList.add('is-hidden');
 
-        onMovieSelect(movie, document.querySelector('#left-summary'));
+        onMovieSelect(movie, document.querySelector('#left-summary'), 'left');
     },
 });
 
@@ -43,11 +43,13 @@ createAutoComplete({
     onOptionSelect(movie) {
         document.querySelector('.tutorial').classList.add('is-hidden');
 
-        onMovieSelect(movie, document.querySelector('#right-summary'));
+        onMovieSelect(movie, document.querySelector('#right-summary'), 'right');
     },
 });
 
-const onMovieSelect = async (movie, summaryElement) => {
+let leftMovie;
+let rightMovie;
+const onMovieSelect = async (movie, summaryElement, side) => {
     const response = await axios.get('https://www.omdbapi.com/', {
         params: {
             apikey: '996f8dcc',
@@ -56,9 +58,60 @@ const onMovieSelect = async (movie, summaryElement) => {
     });
 
     summaryElement.innerHTML = movieTemplate(response.data);
+    switch (side) {
+        case 'left':
+            leftMovie = response.data;
+            break;
+        case 'right':
+        default:
+            rightMovie = response.data;
+            break;
+    }
+
+    if (leftMovie && rightMovie) {
+        runComparison();
+    }
 };
 
+const runComparison = () => {
+    var leftSideStats = document.querySelectorAll('#left-summary .notification');
+    var rightSideStats = document.querySelectorAll('#right-summary .notification');
+
+    leftSideStats.forEach((leftStat, index) => {
+        var rightStat = rightSideStats[index];
+
+        var leftValue = parseInt(leftStat.dataset.value);
+        var rightValue = parseInt(rightStat.dataset.value);
+        
+        if (leftValue > rightValue) {
+            rightStat.classList.remove('is-primary');
+            rightStat.classList.add('is-warning');
+        }
+        else {
+            leftStat.classList.remove('is-primary');
+            leftStat.classList.add('is-warning');
+        }
+    })
+}
+
 const movieTemplate = (movieDetail) => {
+
+    const dollars = parseInt(movieDetail.BoxOffice.replace(/\$/g, '').replace(/,/g, ''));
+    const metascore = parseInt(movieDetail.Metascore);
+    const imdbRating = parseFloat(movieDetail.imdbRating);
+    const imdbVotes = parseInt(movieDetail.imdbVotes.replace(/,/g, ''))
+
+    const awards = movieDetail.Awards.split(' ').reduce((prev, word) => {
+        const value = parseInt(word);
+
+        if (isNaN(value))
+            return prev;
+
+        return prev + value;
+    }, 0);
+
+    console.log(dollars, metascore, imdbRating, imdbVotes, awards);
+
     return `
     <article class="media">
         <figure class="media-left">
@@ -74,17 +127,17 @@ const movieTemplate = (movieDetail) => {
             </div>
         </div>
     </article>
-    ${movieNotification(movieDetail.Awards, 'Awards')}
-    ${movieNotification(movieDetail.BoxOffice, 'Box Office')}
-    ${movieNotification(movieDetail.Metascore, 'Metascore')}
-    ${movieNotification(movieDetail.imdbRating, 'IMDB Rating')}
-    ${movieNotification(movieDetail.imdbVotes, 'IMDB votes')}
+    ${movieNotification(movieDetail.Awards, 'Awards', awards)}
+    ${movieNotification(movieDetail.BoxOffice, 'Box Office', dollars)}
+    ${movieNotification(movieDetail.Metascore, 'Metascore', metascore)}
+    ${movieNotification(movieDetail.imdbRating, 'IMDB Rating', imdbRating)}
+    ${movieNotification(movieDetail.imdbVotes, 'IMDB votes', imdbVotes)}
     `;
 };
 
-const movieNotification = (title, subtitle) => {
+const movieNotification = (title, subtitle, dataValue) => {
     return `
-    <article class="notification is-primary">
+    <article class="notification is-primary" data-value="${dataValue}">
         <p class="title">${title}</p>
         <p class="subtitle">${subtitle}</p>
     </article>
