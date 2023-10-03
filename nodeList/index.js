@@ -2,41 +2,35 @@
 
 const fs = require('node:fs');
 const util = require('node:util');
+const chalk = require('chalk');
+const path = require('node:path');
 
-fs.readdir(process.cwd(), async (err, filenames) => {
+const { lstat } = fs.promises;
+const log = console.log;
+
+const targetDir = process.argv[2] || process.cwd();
+
+fs.readdir(targetDir, async (err, filenames) => {
     if (err) {
         console.log('An error occured', err);
         return;
     }
 
-    console.log('LISTING ASYNC FILES');
-    
-    for (let filename of filenames) {
-        try {
-        const stats = await lstat(filename);
+    console.log('LISTING ASYNC FILES - Promise All');
 
-        console.log('- ', filename, stats.isFile())
+    const statPromises = filenames.map(filename => {
+        return lstat(path.join(targetDir, filename));
+    });
+
+    const allStats = await Promise.all(statPromises);
+
+    for (let stats of allStats) {
+        const index = allStats.indexOf(stats);
+        if (stats.isFile()) {
+            log(filenames[index]);
         }
-        catch (err) {
-            console.log('ERROR', err);
+        else {
+            log(chalk.yellowBright(filenames[index]));
         }
     }
 });
-
-// METHOD #1
-const promiseLStat = (filename) => {
-    return new Promise((resolve, reject) => {
-        fs.lstat(filename, (err, stats) => {
-            if (err)
-                reject(err);
-
-            resolve(stats);
-        });
-    });
-}
-
-// METHOD #2
-const utilLStat = util.promisify(fs.stat);
-
-// METHOD #3
-const { lstat } = fs.promises;
