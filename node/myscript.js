@@ -6,5 +6,8 @@ module.exports = {
     },
     getCounter() {
         return counter;
+    },
+    incrementCounterBy(value) {
+        counter += value;
     }
 }
